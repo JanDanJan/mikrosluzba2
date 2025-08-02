@@ -1,0 +1,1 @@
+Mikroslužba 2 zpracovávající zprávy z mikroslužby 1
