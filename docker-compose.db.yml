@@ -1,0 +1,34 @@
+version: "3.9"
+
+networks:
+  walrus-net:
+    external: true  # we created it with `docker network create`
+
+volumes:
+  walrus_pgdata:
+
+services:
+  walrus-db:
+    image: postgres:16-alpine
+    container_name: walrus-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-walrus}
+      POSTGRES_USER: ${POSTGRES_USER:-walrus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-walrus}
+    volumes:
+      - walrus_pgdata:/var/lib/postgresql/data
+    # expose to other containers via the network (no host port needed)
+    networks:
+      walrus-net:
+        aliases:
+          - walrus-db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-walrus} -d ${POSTGRES_DB:-walrus} -h 127.0.0.1 -p 5432"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    # if you ALSO want host access (optional; pick a non-conflicting port):
+    # ports:
+    #   - "55432:5432"

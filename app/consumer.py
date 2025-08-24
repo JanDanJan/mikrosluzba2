@@ -54,8 +54,15 @@ def mock_compute(entity_row: Dict[str, Any]) -> Dict[str, Any]:
     reraise=True,
 )
 def handle_message(msg, c: Consumer):
-    data = json.loads(msg.value().decode("utf-8"))
-    req = CalcRequest(**data)
+    #data = json.loads(msg.value().decode("utf-8"))
+    #req = CalcRequest(**data)
+    data = msg.value().decode("utf-8")
+    items = data.split("|")
+    req = CalcRequest(
+        event_id=int(items[0]),
+        entity_type=items[1],
+        entity_id=int(items[2])
+    )
 
     log_json(event="received", topic="calc.request", event_id=req.event_id, entity_type=req.entity_type, entity_id=req.entity_id)
 
