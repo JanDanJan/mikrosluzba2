@@ -1,16 +1,9 @@
-# ---- base runtime ----
 FROM python:3.11-slim
-
-# System deps (slim, but enough for our libs)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates tzdata \
- && rm -rf /var/lib/apt/lists/*
-
-# Workdir
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates tzdata \
+  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
-# Install Python deps directly (no requirements/pyproject needed)
-# Pin to sane, recent versions known to work well together.
+# deps (same set we used earlier)
 RUN pip install --no-cache-dir \
     confluent-kafka==2.4.0 \
     SQLAlchemy==2.0.31 \
@@ -19,17 +12,12 @@ RUN pip install --no-cache-dir \
     tenacity==8.3.0 \
     python-dotenv==1.0.1
 
-# Copy your source tree
-# Expected structure:
-# /app/app/main.py, consumer.py, dispatcher.py, db.py, config.py, schemas.py, ...
-COPY app /app/app
+# bring in your repo
+COPY . /app
 
-# Non-root user
-RUN useradd -m runner
-USER runner
+ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app
 
-# Useful defaults
-ENV PYTHONUNBUFFERED=1
-
-# Start the service
-CMD ["python", "-m", "app.main"]
+# important: leave a generic entrypoint
+ENTRYPOINT ["python"]
+# default; we'll override this in compose:
+CMD ["/app/app/main.py"]

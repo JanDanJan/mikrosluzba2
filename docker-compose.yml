@@ -10,13 +10,16 @@ services:
     image: ms2:latest
     container_name: ms2
     restart: unless-stopped
+    env_file: .env
+    networks: [walrus-net]
 
-    env_file:
-      - .env
-
+    # 👇 set this to the real path of your main file inside the container
+    # try one of these common ones; pick the one that matches your tree:
+    # command: ["/app/app/main.py"]
+    # command: ["/app/main.py"]
+    # command: ["/app/mikrosluzba2/main.py"]
     # Needed on Linux so the container can reach the host’s 127.0.0.1
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-    networks:
-      - walrus-net
+    command: ["/app/app/main.py"]
