@@ -10,6 +10,7 @@ from app.schemas import CalcRequest, CalcCompleted
 from sqlalchemy.exc import OperationalError
 from tenacity import retry_if_exception_type
 from app.logging_setup import log_json
+from traceback import format_exc
 
 
 def _mk_consumer():
@@ -56,13 +57,18 @@ def mock_compute(entity_row: Dict[str, Any]) -> Dict[str, Any]:
 def handle_message(msg, c: Consumer):
     #data = json.loads(msg.value().decode("utf-8"))
     #req = CalcRequest(**data)
-    data = msg.value().decode("utf-8")
-    items = data.split("|")
-    req = CalcRequest(
-        event_id=int(items[0]),
-        entity_type=items[1],
-        entity_id=int(items[2])
-    )
+    try:
+        data = msg.value().decode("utf-8")
+        items = data.split("|")
+        req = CalcRequest(
+            event_id=int(items[0]),
+            entity_type=items[1],
+            entity_id=int(items[2])
+        )
+    except Exception as e:
+        log_json(message="Error while handling message", traceback=format_exc())
+        c.commit(message=msg, asynchronous=False)
+        return
 
     log_json(event="received", topic="calc.request", event_id=req.event_id, entity_type=req.entity_type, entity_id=req.entity_id)
 
