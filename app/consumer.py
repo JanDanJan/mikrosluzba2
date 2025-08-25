@@ -58,7 +58,7 @@ def handle_message(msg, c: Consumer):
     #data = json.loads(msg.value().decode("utf-8"))
     #req = CalcRequest(**data)
     try:
-        data = msg.value().decode("utf-8")
+        data = msg.value().decode("utf-8").strip()
         items = data.split("|")
         req = CalcRequest(
             event_id=int(items[0]),
