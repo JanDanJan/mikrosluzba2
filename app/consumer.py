@@ -60,6 +60,7 @@ def handle_message(msg, c: Consumer):
     try:
         data = msg.value().decode("utf-8").strip()
         items = data.split("|")
+        print(f"Items: {items}")
         req = CalcRequest(
             event_id=int(items[0]),
             entity_type=items[1],
