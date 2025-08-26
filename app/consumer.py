@@ -62,9 +62,9 @@ def handle_message(msg, c: Consumer):
         items = data.split("|")
         print(f"Items: {items}")
         req = CalcRequest(
-            event_id=int(items[0]),
+            event_id=items[0],
             entity_type=items[1],
-            entity_id=int(items[2])
+            entity_id=items[2]
         )
     except Exception as e:
         log_json(message="Error while handling message", data=data, traceback=format_exc())
