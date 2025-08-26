@@ -66,7 +66,7 @@ def handle_message(msg, c: Consumer):
             entity_id=int(items[2])
         )
     except Exception as e:
-        log_json(message="Error while handling message", traceback=format_exc())
+        log_json(message="Error while handling message", data=data, time=datetime.now().strftime(), traceback=format_exc())
         c.commit(message=msg, asynchronous=False)
         return
 
