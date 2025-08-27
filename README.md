@@ -18,6 +18,7 @@ classDef process fill:#DCFCE7,stroke:#16A34A,stroke-width:2;
 classDef db fill:#E0F2FE,stroke:#0EA5E9,stroke-width:2;
 classDef external fill:#F3F4F6,stroke:#9CA3AF,stroke-width:2;
 
+```mermaid
 %% C2 — Container diagram (within MS2)
 flowchart LR
     subgraph ms2[MS2 Calculator Service]
@@ -39,6 +40,7 @@ classDef db fill:#E0F2FE,stroke:#0EA5E9,stroke-width:2;
 classDef external fill:#F3F4F6,stroke:#9CA3AF,stroke-width:2;
 classDef note fill:#FFF,stroke:#9CA3AF,stroke-dasharray: 5 5;
 
+```mermaid
 %% C3 — Components inside MS2 App Process
 flowchart TB
     subgraph app[MS2 App Process (Python)]
@@ -66,6 +68,7 @@ classDef comp fill:#ECFEFF,stroke:#0891B2,stroke-width:2;
 classDef db fill:#E0F2FE,stroke:#0EA5E9,stroke-width:2;
 classDef external fill:#F3F4F6,stroke:#9CA3AF,stroke-width:2;
 
+```mermaid
 %% C4 (informal) — Code/module view mapping
 flowchart TB
     main[app/main.py]:::code --> consumer[app/consumer.py]:::code
