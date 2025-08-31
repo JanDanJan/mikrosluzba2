@@ -5,6 +5,14 @@ from app.db import SessionLocal, OutboxEvent
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
+        """
+        Serve the `/healthz` endpoint with outbox backlog information.
+
+        I return 200 with a JSON body `{"status":"ok","outbox_unsent": <int>}`
+        on success. For any exception, I return 500 with a JSON error.
+
+        @return None
+        """
         if self.path != "/healthz":
             self.send_response(404); self.end_headers(); return
         try:
@@ -25,6 +33,14 @@ class Handler(BaseHTTPRequestHandler):
             self.wfile.write(body)
 
 def start_health_server(stop_event, host="0.0.0.0", port=8080):
+    """
+    Start a background HTTP server exposing `/healthz` until stopped.
+
+    @param stop_event: `threading.Event`-like; when set, the server shuts down.
+    @param host: Interface to bind (default `0.0.0.0`).
+    @param port: TCP port to listen on (default 8080).
+    @return None
+    """
     httpd = HTTPServer((host, port), Handler)
     t = Thread(target=httpd.serve_forever, daemon=True)
     t.start()

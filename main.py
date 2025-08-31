@@ -5,6 +5,15 @@ from app.dispatcher import run_outbox_dispatcher
 from app.health import start_health_server
 
 def main():
+    """
+    Initialize the database and run the service components until interrupted.
+
+    I install SIGINT/SIGTERM handlers to set a shared stop flag, start the
+    health server, and run both the Kafka consumer loop and outbox dispatcher
+    in background threads.
+
+    @return None
+    """
     init_db()
     stop_flag = threading.Event()
     def _sig(*_): stop_flag.set()
