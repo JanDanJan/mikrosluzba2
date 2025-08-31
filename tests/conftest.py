@@ -71,7 +71,12 @@ def fake_producer(monkeypatch):
             sent.append(payload)
             # Simulate successful delivery
             if on_delivery:
-                on_delivery(None, types.SimpleNamespace(topic=topic), payload["value"].get("event_id", "outbox-id-unknown"))
+                class _Msg:
+                    def __init__(self, t):
+                        self._t = t
+                    def topic(self):
+                        return self._t
+                on_delivery(None, _Msg(topic), payload["value"].get("event_id", "outbox-id-unknown"))
 
         def flush(self, timeout):
             return 0

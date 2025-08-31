@@ -19,7 +19,6 @@ def _get_producer():
         return producer
     producer = Producer({
         "bootstrap.servers": KAFKA_BOOTSTRAP,
-        # Nice-to-have in real envs; harmless locally
         "enable.idempotence": True,
         "acks": "all",
     })
@@ -32,7 +31,6 @@ def _flush(p):
 def run_outbox_dispatcher(stop_flag, prod=None):
     """
     Dispatch unsent outbox events to Kafka until stop_flag is set.
-    You can pass a fake producer via 'prod' (tests), or set module 'producer'.
     """
     p = prod or _get_producer()
     while not stop_flag.is_set():
@@ -54,7 +52,7 @@ def run_outbox_dispatcher(stop_flag, prod=None):
 def _make_delivery_cb(outbox_id):
     """
     Return a delivery callback that marks the outbox event as sent.
-    Accept a third arg for compatibility with test fakes that call on_delivery(err, msg, rid).
+    Accepts a third arg for compatibility with test fakes that call on_delivery(err, msg, rid).
     """
     return lambda err, msg, rid=None: _on_delivery(err, msg, outbox_id)
 

@@ -1,4 +1,11 @@
 import os
+try:
+    # Load environment variables from a local .env file if present (no-op if missing)
+    from dotenv import load_dotenv  # type: ignore
+    load_dotenv()
+except Exception:
+    # Safe fallback: proceed without .env support if package is unavailable
+    pass
 
 # Kafka
 KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP", "localhost:9092")
@@ -13,6 +20,4 @@ DB_URL = os.getenv("DB_URL", "postgresql+psycopg2://walrus:walrus@localhost:5543
 OUTBOX_BATCH = int(os.getenv("OUTBOX_BATCH", "100"))
 OUTBOX_POLL_MS = int(os.getenv("OUTBOX_POLL_MS", "1000"))
 
-# What entity tables we allow MS2 to read from (must exist in DB)
-# If empty, we’ll accept any table found via reflection.
 ALLOWED_ENTITY_TABLES = set(filter(None, os.getenv("ALLOWED_ENTITY_TABLES", "").split(",")))

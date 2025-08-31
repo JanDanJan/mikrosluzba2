@@ -1,9 +1,9 @@
 import json
 from types import SimpleNamespace
 
-def _msg(payload_dict):
-    # Minimal message object used by handle_message
-    b = json.dumps(payload_dict).encode("utf-8")
+def _msg_parts(event_id: str, entity_type: str, entity_id: str):
+    # Minimal message object used by handle_message (pipe-delimited payload)
+    b = f"{event_id}|{entity_type}|{entity_id}".encode("utf-8")
     return SimpleNamespace(value=lambda: b, error=lambda: None)
 
 def _fake_consumer():
@@ -22,12 +22,9 @@ def test_happy_path(fresh_db, walrus_tables, sample_row, fake_producer):
     init_db()
 
     # 1) Process a request
-    payload = {
-        "event_id": "evt-001",
-        "entity_type": sample_row["entity_type"],
-        "entity_id": sample_row["entity_id"]
-    }
-    msg = _msg(payload)
+    # New message format: "event_id|entity_type|entity_id"
+    evt_id = "evt-001"
+    msg = _msg_parts(evt_id, sample_row["entity_type"], sample_row["entity_id"])
     consumer, committed = _fake_consumer()
 
     handle_message(msg, consumer)
@@ -56,7 +53,7 @@ def test_happy_path(fresh_db, walrus_tables, sample_row, fake_producer):
 
     assert len(fake_producer) == 1
     assert fake_producer[0]["topic"] == "calc.completed"
-    assert fake_producer[0]["value"]["correlation_id"] == "evt-001"
+    assert fake_producer[0]["value"]["correlation_id"] == evt_id
 
 def test_idempotency(fresh_db, walrus_tables, sample_row, fake_producer):
     from app.db import SessionLocal, CalcResult, init_db
@@ -64,7 +61,7 @@ def test_idempotency(fresh_db, walrus_tables, sample_row, fake_producer):
 
     init_db()
 
-    msg = _msg({"event_id":"evt-dup","entity_type":sample_row["entity_type"],"entity_id":sample_row["entity_id"]})
+    msg = _msg_parts("evt-dup", sample_row["entity_type"], sample_row["entity_id"])
     consumer, _ = _fake_consumer()
     handle_message(msg, consumer)
     handle_message(msg, consumer)  # same event again
@@ -78,7 +75,7 @@ def test_entity_not_found(fresh_db, walrus_tables, fake_producer):
     from app.consumer import handle_message
 
     init_db()
-    msg = _msg({"event_id":"evt-missing","entity_type":"electric_sensor","entity_id":"999"})
+    msg = _msg_parts("evt-missing", "electric_sensor", "999")
     consumer, _ = _fake_consumer()
     handle_message(msg, consumer)
 

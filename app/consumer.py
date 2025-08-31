@@ -41,7 +41,7 @@ def _numeric_fields_score(row: Dict[str, Any]) -> float:
 def mock_compute(entity_row: Dict[str, Any]) -> Dict[str, Any]:
     """
     Replace this with the real computation later.
-    For now we return an explainable payload.
+    Now simulated the computation.
     """
     return {
         "score": _numeric_fields_score(entity_row),
@@ -55,8 +55,6 @@ def mock_compute(entity_row: Dict[str, Any]) -> Dict[str, Any]:
     reraise=True,
 )
 def handle_message(msg, c: Consumer):
-    #data = json.loads(msg.value().decode("utf-8"))
-    #req = CalcRequest(**data)
     try:
         data = msg.value().decode("utf-8").strip()
         items = data.split("|")
@@ -75,12 +73,11 @@ def handle_message(msg, c: Consumer):
 
     started = time.perf_counter()
     with SessionLocal() as s:
-        # Optional dedupe (inbox)
+        # Deduplication via inbox
         if s.get(InboxEvent, req.event_id):
             c.commit(message=msg, asynchronous=False)
             return
 
-        # Load the entity row from the reflected table
         row = fetch_entity_row(s, req.entity_type, req.entity_id)
         if row is None:
             # Persist a FAILED result but still emit completion event
@@ -98,10 +95,8 @@ def handle_message(msg, c: Consumer):
             c.commit(message=msg, asynchronous=False)
             return
 
-        # Mock compute over the entity row
         result_payload = mock_compute(row)
 
-        # Persist result + outbox in ONE TX
         result = CalcResult(
             entity_type=req.entity_type,
             entity_id=req.entity_id,
@@ -117,9 +112,7 @@ def handle_message(msg, c: Consumer):
             payload=completed_payload
         ))
 
-        # Mark inbox
         s.add(InboxEvent(event_id=req.event_id))
-
         s.commit()
 
     # Commit Kafka offset only after DB commit
@@ -151,7 +144,6 @@ def run_consumer(stop_flag):
             if msg is None:
                 continue
             if msg.error():
-                # You can route to DLQ here if desired
                 continue
             handle_message(msg, c)
     finally:
